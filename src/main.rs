@@ -6,6 +6,10 @@ fn main() {
             let _ = clap.print();
             std::process::exit(clap.exit_code());
         }
+        // A reader such as `head` closed stdout; the output it wanted is complete.
+        if log_forge::is_stdout_closed(error.as_ref()) {
+            std::process::exit(0);
+        }
         eprintln!("error: {error}");
         std::process::exit(1);
     }

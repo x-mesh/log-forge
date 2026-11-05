@@ -118,18 +118,31 @@ fn handle(stream: &mut UnixStream, state: &ControlState) -> io::Result<()> {
 }
 
 #[derive(Parser)]
+#[command(about = "Send a command to a running generator and print its JSON status")]
 struct ControlArgs {
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Connect to the socket that start --control-socket created"
+    )]
     control_socket: PathBuf,
 }
 
 #[derive(Parser)]
+#[command(about = "Print the status of a running generator until it stops")]
 struct MonitorArgs {
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Connect to the socket that start --control-socket created"
+    )]
     control_socket: PathBuf,
-    #[arg(short, long, default_value_t = 2.0)]
+    #[arg(
+        short,
+        long,
+        default_value_t = 2.0,
+        help = "Set the refresh interval in seconds"
+    )]
     refresh: f64,
-    #[arg(long)]
+    #[arg(long, help = "Include recent records")]
     show_logs: bool,
 }
 
@@ -138,7 +151,12 @@ fn request(path: &Path, action: &str) -> io::Result<Value> {
     stream.set_read_timeout(Some(Duration::from_secs(2)))?;
     stream.write_all(format!("{action}\n").as_bytes())?;
     let mut response = String::new();
-    BufReader::new(stream).read_line(&mut response)?;
+    if BufReader::new(stream).read_line(&mut response)? == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "control socket closed without a response",
+        ));
+    }
     serde_json::from_str(&response).map_err(io::Error::other)
 }
 
@@ -146,7 +164,8 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
     let action = args[1].clone();
     if action == "monitor" {
         let cli = MonitorArgs::try_parse_from(
-            std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)),
+            std::iter::once(crate::app::command_name(&args[0], &action))
+                .chain(args.into_iter().skip(2)),
         )?;
         if !cli.refresh.is_finite() || cli.refresh <= 0.0 {
             return Err("refresh must be a positive finite number".into());
@@ -167,20 +186,28 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
             ) {
                 Ok(response) => {
                     connected = true;
-                    println!("{}", serde_json::to_string(&response)?);
-                    io::stdout().flush()?;
+                    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?)
+                        .map_err(crate::stdout_error)?;
+                    io::stdout().flush().map_err(crate::stdout_error)?;
                     if response["state"] == "stopping" {
                         break;
                     }
                 }
+                // A stopping generator can accept a request and close before it replies.
                 Err(error)
                     if connected
                         && matches!(
                             error.kind(),
-                            io::ErrorKind::NotFound | io::ErrorKind::ConnectionRefused
+                            io::ErrorKind::NotFound
+                                | io::ErrorKind::ConnectionRefused
+                                | io::ErrorKind::UnexpectedEof
+                                | io::ErrorKind::NotConnected
+                                | io::ErrorKind::ConnectionReset
+                                | io::ErrorKind::BrokenPipe
                         ) =>
                 {
-                    println!("{}", json!({"state":"disconnected"}));
+                    writeln!(io::stdout(), "{}", json!({"state":"disconnected"}))
+                        .map_err(crate::stdout_error)?;
                     break;
                 }
                 Err(error) => return Err(error.into()),
@@ -190,9 +217,10 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     let cli = ControlArgs::try_parse_from(
-        std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], &action))
+            .chain(args.into_iter().skip(2)),
     )?;
     let response = request(&cli.control_socket, &action)?;
-    println!("{}", serde_json::to_string(&response)?);
+    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?).map_err(crate::stdout_error)?;
     Ok(())
 }

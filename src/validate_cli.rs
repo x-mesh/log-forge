@@ -43,10 +43,17 @@ const TYPES: &[&str] = &[
 ];
 
 #[derive(Parser)]
+#[command(
+    about = "Validate log files",
+    after_help = "Examples:\n  log-forge validate --input ./logs\n  log-forge validate --input access.log --type nginx_access"
+)]
 struct Args {
-    #[arg(long)]
+    #[arg(long, help = "Read a log file or a directory of .log and .json files")]
     input: PathBuf,
-    #[arg(long = "type")]
+    #[arg(
+        long = "type",
+        help = "Set the log type; the default comes from the file name"
+    )]
     kind: Option<String>,
     #[arg(long, help = "Accept records that match this regular expression")]
     pattern: Option<String>,
@@ -78,6 +85,12 @@ pub(crate) fn infer_type(path: &Path) -> Option<&'static str> {
 }
 
 pub(crate) fn input_files(input: PathBuf) -> io::Result<Vec<PathBuf>> {
+    if !input.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("input not found: {}", input.display()),
+        ));
+    }
     let paths = if input.is_dir() {
         let mut paths = Vec::new();
         for entry in fs::read_dir(input)? {
@@ -142,8 +155,10 @@ pub(crate) fn scan_records(
 }
 
 pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
-    let cli =
-        Args::try_parse_from(std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)))?;
+    let cli = Args::try_parse_from(
+        std::iter::once(crate::app::command_name(&args[0], "validate"))
+            .chain(args.into_iter().skip(2)),
+    )?;
     let paths = input_files(cli.input)?;
     let mut total = 0_u64;
     let mut invalid = 0_u64;

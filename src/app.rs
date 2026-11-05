@@ -73,16 +73,20 @@ struct Args {
 }
 
 #[derive(Parser)]
+#[command(
+    about = "Print sample records on stdout",
+    after_help = "Example:\n  log-forge sample --type nginx_access --count 5 --seed 42"
+)]
 struct SampleArgs {
-    #[arg(long = "type")]
+    #[arg(long = "type", help = "Select a log type from list-types")]
     kind: String,
-    #[arg(long, default_value_t = 5)]
+    #[arg(long, default_value_t = 5, help = "Set the number of records")]
     count: u64,
-    #[arg(long, default_value_t = 0)]
+    #[arg(long, default_value_t = 0, help = "Set the random seed")]
     seed: u64,
-    #[arg(long)]
+    #[arg(long, help = "Set the virtual start time")]
     start_time: Option<String>,
-    #[arg(long)]
+    #[arg(long, help = "Read type settings from a YAML or JSON configuration")]
     config: Option<PathBuf>,
 }
 
@@ -451,10 +455,22 @@ const POSTGRES_TABLES: &[&str] = &[
 ];
 const POSTGRES_SLOW_TABLES: &[&str] = &["users", "orders", "products", "categories", "audit_log"];
 
+pub(crate) fn command_name(program: &str, command: &str) -> String {
+    let name = std::path::Path::new(program)
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .unwrap_or("log-forge");
+    format!("{name} {command}")
+}
+
 fn root_command(name: &'static str) -> Command {
     let command = Command::new(name)
         .version(env!("CARGO_PKG_VERSION"))
         .about("Generate and inspect synthetic logs")
+        .after_help(format!(
+            "Examples:\n  {name} start --output console --types redis --total 3 --no-monitor\n  {name} validate --input ./logs\n\nRun '{name} <COMMAND> --help' for the options of a command."
+        ))
+        .subcommand(Command::new("init").about("Create a configuration interactively"))
         .subcommand(Command::new("start").about("Generate logs"))
         .subcommand(Command::new("config").about("Manage configuration"))
         .subcommand(Command::new("list-types").about("List log types"))
@@ -2590,6 +2606,9 @@ pub(crate) fn run(
     ) {
         return crate::control::command(args);
     }
+    if args.get(1).map(String::as_str) == Some("init") {
+        return crate::init_cli::run(args, registry);
+    }
     if args.get(1).map(String::as_str) == Some("validate") {
         return crate::validate_cli::run(args);
     }
@@ -2598,7 +2617,8 @@ pub(crate) fn run(
     }
     if args.get(1).map(String::as_str) == Some("sample") {
         let sample = SampleArgs::try_parse_from(
-            std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)),
+            std::iter::once(crate::app::command_name(&args[0], "sample"))
+                .chain(args.into_iter().skip(2)),
         )?;
         if sample.count == 0 {
             return Err("sample count must be greater than zero".into());
@@ -2640,6 +2660,10 @@ pub(crate) fn run(
         Some("start" | "list-types" | "config")
     ) {
         return compat::run(args, registry);
+    }
+    // Direct mode takes only options, so a leading word is a mistyped command.
+    if args.get(1).is_some_and(|arg| !arg.starts_with('-')) {
+        root_command(executable).try_get_matches_from(&args[..2])?;
     }
     let args = Args::try_parse_from(args)?;
     let start = args.start.unwrap_or_else(Utc::now);

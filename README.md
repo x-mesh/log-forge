@@ -48,7 +48,19 @@ The direct mode uses the start time for each record. Omit `--start` to use the c
 
 ## Use a configuration file
 
-A configuration file selects several log types and their frequencies. Save this configuration as `config.yaml`.
+A configuration file selects several log types and their frequencies. Run `init` to create one. In a terminal, it asks for the log types, output, record count, and start time. Press Enter to accept a default.
+
+```sh
+./target/release/log-forge init
+```
+
+Each question has an option. Add `--yes` to skip the questions, for example in a script:
+
+```sh
+./target/release/log-forge init --types nginx_access=0.7,syslog=0.3 --start-time '2024-01-01 00:00:00' --yes
+```
+
+The command does not replace an existing file. You can also write the file yourself. Save this configuration as `config.yaml`.
 
 ```yaml
 log_generator:

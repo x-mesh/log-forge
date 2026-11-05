@@ -367,6 +367,10 @@ impl Drop for SignalGuard {
 }
 
 #[derive(Parser)]
+#[command(
+    about = "Generate logs",
+    after_help = "Examples:\n  log-forge start --output console --types redis --total 3 --no-monitor\n  log-forge start --config config.yaml --seed 42"
+)]
 struct Start {
     #[arg(short, long, help = "Read a YAML or JSON configuration")]
     config: Option<PathBuf>,
@@ -408,11 +412,19 @@ struct Start {
     virtual_time: bool,
     #[arg(long, help = "Disable progress and statistics output")]
     no_monitor: bool,
-    #[arg(long, conflicts_with = "no_monitor")]
+    #[arg(
+        long,
+        conflicts_with = "no_monitor",
+        help = "Report progress and statistics on stderr"
+    )]
     monitor: bool,
     #[arg(long, help = "Hide the progress target")]
     no_progress: bool,
-    #[arg(long, conflicts_with = "no_progress")]
+    #[arg(
+        long,
+        conflicts_with = "no_progress",
+        help = "Show the progress target"
+    )]
     progress: bool,
     #[arg(long, default_value_t = 0, help = "Set the random seed")]
     seed: u64,
@@ -464,10 +476,17 @@ struct Start {
 }
 
 #[derive(Parser)]
+#[command(
+    about = "Manage configuration",
+    after_help = "Examples:\n  log-forge config create --file config.yaml\n  log-forge config validate --file config.yaml"
+)]
 struct ConfigCommand {
-    #[arg(value_parser = ["create", "show", "validate", "edit"])]
+    #[arg(
+        value_parser = ["create", "show", "validate", "edit"],
+        help = "Create, show, validate, or edit a configuration in $EDITOR"
+    )]
     action: String,
-    #[arg(short, long)]
+    #[arg(short, long, help = "Set the configuration file")]
     file: Option<PathBuf>,
     #[arg(
         long,
@@ -477,7 +496,11 @@ struct ConfigCommand {
     original_defaults: bool,
     #[arg(long, help = "Use only the supplied configuration")]
     standalone_config: bool,
-    #[arg(long, value_parser = ["yaml", "json"])]
+    #[arg(
+        long,
+        value_parser = ["yaml", "json"],
+        help = "Select the format for create and show"
+    )]
     format: Option<String>,
 }
 
@@ -3312,7 +3335,44 @@ fn resolve_kind(
     if settings.is_some_and(|settings| settings.is_microservice(name)) {
         return Ok(Some(LogType::Microservice));
     }
-    Err(format!("unknown log type: {name}").into())
+    let mut message = format!("unknown log type: {name}");
+    let known = LogType::value_variants()
+        .iter()
+        .filter_map(|kind| kind.to_possible_value())
+        .map(|value| value.get_name().to_owned())
+        .chain(registry.types().map(str::to_owned));
+    if let Some(closest) = closest_name(name, known) {
+        message.push_str(&format!("\n  tip: did you mean '{closest}'?"));
+    }
+    message.push_str("\n  try: log-forge list-types");
+    Err(message.into())
+}
+
+fn closest_name(name: &str, candidates: impl Iterator<Item = String>) -> Option<String> {
+    let limit = (name.chars().count() / 3).max(1);
+    candidates
+        .map(|candidate| (edit_distance(name, &candidate), candidate))
+        .filter(|(distance, _)| *distance <= limit)
+        .min_by_key(|(distance, _)| *distance)
+        .map(|(_, candidate)| candidate)
+}
+
+fn edit_distance(left: &str, right: &str) -> usize {
+    let right: Vec<char> = right.chars().collect();
+    let mut previous: Vec<usize> = (0..=right.len()).collect();
+    for (row, left_char) in left.chars().enumerate() {
+        let mut current = vec![row + 1];
+        for (column, right_char) in right.iter().enumerate() {
+            let substitution = previous[column] + usize::from(left_char != *right_char);
+            current.push(
+                substitution
+                    .min(previous[column + 1] + 1)
+                    .min(current[column] + 1),
+            );
+        }
+        previous = current;
+    }
+    previous[right.len()]
 }
 
 fn select_traced(
@@ -3635,6 +3695,23 @@ fn validate_service_metrics(config: &Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub(crate) fn check_config_source(
+    source: &str,
+    path: &Path,
+    registry: &GeneratorRegistry,
+) -> Result<(), Box<dyn Error>> {
+    let document = parse_document(source, Some(path), false)?;
+    validate_config(&document.log_generator, registry)
+}
+
+pub(crate) fn log_type_names() -> Vec<String> {
+    LogType::value_variants()
+        .iter()
+        .filter_map(|kind| kind.to_possible_value())
+        .map(|value| value.get_name().to_owned())
+        .collect()
+}
+
 fn validate_config(config: &Config, registry: &GeneratorRegistry) -> Result<(), Box<dyn Error>> {
     validate_service_metrics(config)?;
     let global = &config.global;
@@ -3784,7 +3861,8 @@ fn original_command(program: &str) -> bool {
 fn config_command(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dyn Error>> {
     let use_original = original_command(&args[0]);
     let cli = ConfigCommand::try_parse_from(
-        std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], "config"))
+            .chain(args.into_iter().skip(2)),
     )?;
     if cli.standalone_config && (cli.file.is_none() || cli.action == "create") {
         return Err("--standalone-config requires an existing configuration file".into());
@@ -4784,7 +4862,10 @@ impl Output {
     ) -> Result<(), Box<dyn Error>> {
         match self {
             Self::File(file) => file.write(data)?,
-            Self::Console => io::stdout().lock().write_all(data)?,
+            Self::Console => io::stdout()
+                .lock()
+                .write_all(data)
+                .map_err(crate::stdout_error)?,
             Self::HumanConsole { human, colored } => {
                 let message = std::str::from_utf8(data)?.trim_end_matches('\n');
                 let prefix = if *human {
@@ -4812,7 +4893,8 @@ impl Output {
                     ""
                 };
                 let reset = if *colored { "\x1b[0m" } else { "" };
-                writeln!(io::stdout().lock(), "{prefix}{color}{message}{reset}")?;
+                writeln!(io::stdout().lock(), "{prefix}{color}{message}{reset}")
+                    .map_err(crate::stdout_error)?;
             }
             Self::Syslog(output) => {
                 let message = std::str::from_utf8(data)?
@@ -4930,7 +5012,9 @@ impl Output {
                 Ok(())
             }
             Self::Tcp(s) => s.flush(),
-            Self::Console | Self::HumanConsole { .. } => io::stdout().flush(),
+            Self::Console | Self::HumanConsole { .. } => {
+                io::stdout().flush().map_err(crate::stdout_error)
+            }
             Self::Syslog(output) => output.finish(),
             Self::Udp(_) => Ok(()),
             Self::Http(_) => Ok(()),
@@ -5206,7 +5290,8 @@ pub fn run(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dy
         clap::Command::new("log-forge list-types")
             .about("List log types")
             .try_get_matches_from(
-                std::iter::once(args[0].clone()).chain(args.iter().skip(2).cloned()),
+                std::iter::once(crate::app::command_name(&args[0], "list-types"))
+                    .chain(args.iter().skip(2).cloned()),
             )?;
         for kind in LogType::value_variants() {
             println!(
@@ -5221,7 +5306,7 @@ pub fn run(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dy
         }
         return Ok(());
     }
-    let program = format!("{} start", args[0]);
+    let program = crate::app::command_name(&args[0], "start");
     let cli = Start::try_parse_from(std::iter::once(program).chain(args.into_iter().skip(2)))?;
     let continue_on_error = cli.continue_on_error || (use_original && !cli.fail_fast);
     if cli.standalone_config && cli.config.is_none() {
