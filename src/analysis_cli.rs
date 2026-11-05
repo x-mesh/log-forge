@@ -3,23 +3,36 @@ use crate::{
     validate_cli::{infer_type, input_files, scan_records, validator_for},
 };
 use clap::Parser;
-use std::{collections::BTreeMap, error::Error, io, path::PathBuf};
+use std::{
+    collections::BTreeMap,
+    error::Error,
+    io::{self, Write},
+    path::PathBuf,
+};
 
 #[derive(Parser)]
+#[command(
+    about = "Analyze log files and print statistics as JSON",
+    after_help = "Example:\n  log-forge analyze --input access.log --type nginx_access --pretty"
+)]
 struct Args {
-    #[arg(long)]
+    #[arg(long, help = "Read a log file or a directory of .log and .json files")]
     input: PathBuf,
-    #[arg(long = "type")]
+    #[arg(
+        long = "type",
+        help = "Set the log type; the default comes from the file name"
+    )]
     kind: Option<String>,
     #[arg(long, help = "Accept records that match this regular expression")]
     pattern: Option<String>,
-    #[arg(long)]
+    #[arg(long, help = "Indent the JSON output")]
     pretty: bool,
 }
 
 pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
-    let cli =
-        Args::try_parse_from(std::iter::once(args[0].clone()).chain(args.into_iter().skip(2)))?;
+    let cli = Args::try_parse_from(
+        std::iter::once(format!("{} analyze", args[0])).chain(args.into_iter().skip(2)),
+    )?;
     let mut analyzers = BTreeMap::new();
     for path in input_files(cli.input)? {
         let kind = cli
@@ -45,10 +58,12 @@ pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
         .into_iter()
         .map(|(kind, analyzer)| (kind, analyzer.statistics()))
         .collect();
+    let mut stdout = io::stdout().lock();
     if cli.pretty {
-        println!("{}", serde_json::to_string_pretty(&stats)?);
+        serde_json::to_writer_pretty(&mut stdout, &stats)?;
     } else {
-        println!("{}", serde_json::to_string(&stats)?);
+        serde_json::to_writer(&mut stdout, &stats)?;
     }
+    writeln!(stdout)?;
     Ok(())
 }

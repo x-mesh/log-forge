@@ -16,6 +16,7 @@ pub mod frequency;
 mod goloop;
 mod haproxy;
 mod http_output;
+mod init_cli;
 mod internal_log;
 mod json_output;
 mod microservice;
