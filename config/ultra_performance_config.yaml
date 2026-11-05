@@ -1,0 +1,72 @@
+# Ultra Performance configuration for Log Generator Tool
+# 가상 시간을 사용한 극한 성능 설정
+
+log_generator:
+  # Global settings optimized for maximum performance
+  global:
+    output_format: "multi_file"     # Multi-file output
+    output_path: "./logs"           # Output directory
+    generation_interval: 0.001      # 1ms - 극한 성능 (실제로는 sleep 안함)
+    total_logs: 0                   # Unlimited generation
+    virtual_time: true              # 가상 시간 사용 (핵심!)
+    
+    # Multi-file output settings
+    multi_file:
+      file_pattern: "{log_type}_{date}.log"
+      date_format: "%Y%m%d_%H%M%S"
+    
+    # Performance optimizations
+    buffer_size: 131072             # 128KB buffer
+    
+  # Log type configurations - 간단한 로그 타입만 활성화
+  log_types:
+    # Nginx access logs - 가장 빠른 생성
+    nginx_access:
+      enabled: true
+      frequency: 0.7                # 70% of total logs
+      patterns:
+        - "combined"
+      custom_fields:
+        status_codes:
+          200: 0.95                 # 대부분 성공 응답으로 단순화
+          404: 0.05
+          
+    # FastAPI logs - 중간 속도
+    fastapi:
+      enabled: true
+      frequency: 0.3                # 30% of total logs
+      log_levels:
+        - "INFO"                    # INFO만 사용해서 단순화
+      endpoints:
+        - "/api/users"
+        - "/health"
+    
+    # 다른 로그 타입들 명시적으로 비활성화
+    nginx_error:
+      enabled: false
+    syslog:
+      enabled: false
+    apache_access:
+      enabled: false
+    apache_error:
+      enabled: false
+    django_request:
+      enabled: false
+    django_sql:
+      enabled: false
+    docker:
+      enabled: false
+    kubernetes_pod:
+      enabled: false
+    kubernetes_event:
+      enabled: false
+    mysql_query:
+      enabled: false
+    mysql_error:
+      enabled: false
+    mysql_slow:
+      enabled: false
+    postgresql:
+      enabled: false
+    postgresql_slow:
+      enabled: false

@@ -1,0 +1,71 @@
+# Multi-file configuration for Log Generator Tool
+# 로그 타입별 별도 파일 생성 설정
+
+log_generator:
+  # Global settings
+  global:
+    output_format: "multi_file"     # Use multi-file output handler
+    output_path: "./logs"           # Base directory for log files
+    generation_interval: 0.5        # Faster generation for demo
+    total_logs: 100                 # Generate 100 logs total
+    
+    # Multi-file output settings
+    multi_file:
+      file_pattern: "{log_type}_{date}.log"  # Pattern: nginx_access_20241215.log
+      date_format: "%Y%m%d"                  # Date format: YYYYMMDD
+      separate_by_type: true                 # Create separate files for each log type
+    
+    # File rotation settings
+    rotation_size: 1048576          # 1MB per file
+    max_files: 5                    # Keep 5 rotated files per type
+    
+  # Log type configurations - enabled types will get separate files
+  log_types:
+    # Nginx access logs -> nginx_access_YYYYMMDD.log
+    nginx_access:
+      enabled: true
+      frequency: 0.4                # 40% of total logs
+      patterns:
+        - "combined"
+      custom_fields:
+        ip_ranges: 
+          - "192.168.1.0/24"
+          - "10.0.0.0/8"
+        status_codes:
+          200: 0.8
+          404: 0.1
+          500: 0.1
+          
+    # Nginx error logs -> nginx_error_YYYYMMDD.log
+    nginx_error:
+      enabled: true
+      frequency: 0.1                # 10% of total logs
+      error_levels: 
+        - "error"
+        - "warn"
+        
+    # System logs -> syslog_YYYYMMDD.log
+    syslog:
+      enabled: true
+      frequency: 0.3                # 30% of total logs
+      facilities:
+        - "kern"
+        - "daemon"
+        - "auth"
+      severities:
+        - "info"
+        - "warning"
+        - "err"
+        
+    # FastAPI logs -> fastapi_YYYYMMDD.log
+    fastapi:
+      enabled: true
+      frequency: 0.2                # 20% of total logs
+      log_levels:
+        - "INFO"
+        - "WARNING"
+        - "ERROR"
+      endpoints:
+        - "/api/users"
+        - "/api/orders"
+        - "/health"

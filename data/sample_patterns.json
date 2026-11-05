@@ -1,0 +1,136 @@
+[
+  {
+    "name": "nginx_custom",
+    "template": "{timestamp} [{level}] {pid}#{tid}: *{connection_id} {message}, client: {ip_address}, server: {server_name}",
+    "description": "Custom nginx error log pattern",
+    "category": "web_server",
+    "fields": {
+      "level": {
+        "type": "choice",
+        "options": [
+          "error",
+          "warn",
+          "info"
+        ]
+      },
+      "pid": {
+        "type": "random_int",
+        "options": {
+          "min_val": 1000,
+          "max_val": 9999
+        }
+      },
+      "tid": {
+        "type": "random_int",
+        "options": {
+          "min_val": 0,
+          "max_val": 99
+        }
+      },
+      "connection_id": {
+        "type": "counter"
+      },
+      "message": {
+        "type": "choice",
+        "options": [
+          "connection refused",
+          "timeout",
+          "file not found"
+        ]
+      },
+      "ip_address": {
+        "type": "choice",
+        "options": [
+          "192.168.1.100",
+          "10.0.0.50",
+          "172.16.0.10"
+        ]
+      },
+      "server_name": {
+        "type": "choice",
+        "options": [
+          "example.com",
+          "api.example.com",
+          "www.example.com"
+        ]
+      }
+    }
+  },
+  {
+    "name": "api_request",
+    "template": "{iso_timestamp} [INFO] API Request: {method} {endpoint} - Status: {status_code} - Response Time: {response_time}ms - User: {user_id}",
+    "description": "API request log pattern",
+    "category": "application",
+    "fields": {
+      "method": {
+        "type": "choice",
+        "options": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE"
+        ]
+      },
+      "endpoint": {
+        "type": "choice",
+        "options": [
+          "/api/users",
+          "/api/orders",
+          "/api/products",
+          "/health"
+        ]
+      },
+      "status_code": {
+        "type": "choice",
+        "options": [
+          "200",
+          "201",
+          "400",
+          "404",
+          "500"
+        ]
+      },
+      "response_time": {
+        "type": "random_float",
+        "options": {
+          "min_val": 10,
+          "max_val": 2000
+        }
+      },
+      "user_id": {
+        "type": "uuid"
+      }
+    }
+  },
+  {
+    "name": "database_query",
+    "template": "{timestamp} [SQL] Duration: {duration}ms Query: {query} Rows: {rows_affected}",
+    "description": "Database query log pattern",
+    "category": "database",
+    "fields": {
+      "duration": {
+        "type": "random_float",
+        "options": {
+          "min_val": 0.1,
+          "max_val": 500
+        }
+      },
+      "query": {
+        "type": "choice",
+        "options": [
+          "SELECT * FROM users",
+          "INSERT INTO orders",
+          "UPDATE products",
+          "DELETE FROM cache"
+        ]
+      },
+      "rows_affected": {
+        "type": "random_int",
+        "options": {
+          "min_val": 0,
+          "max_val": 1000
+        }
+      }
+    }
+  }
+]

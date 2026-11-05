@@ -1,0 +1,62 @@
+# Historical logs configuration for Log Generator Tool
+# 과거 시점부터 로그를 생성하는 설정
+
+log_generator:
+  # Global settings for historical log generation
+  global:
+    output_format: "multi_file"     # Multi-file output
+    output_path: "./logs/historical" # Historical logs directory
+    generation_interval: 0.01       # Fast generation
+    total_logs: 1000                # Generate 1000 historical logs
+    
+    # Time settings - start from a week ago
+    virtual_time: true              # Use virtual time
+    start_time: "2024-12-08 09:00:00"  # Start from a specific past time
+    
+    # Multi-file output settings
+    multi_file:
+      file_pattern: "historical_{log_type}_{date}.log"
+      date_format: "%Y%m%d"
+    
+  # Log type configurations
+  log_types:
+    # Nginx access logs
+    nginx_access:
+      enabled: true
+      frequency: 0.5                # 50% of total logs
+      patterns:
+        - "combined"
+      custom_fields:
+        status_codes:
+          200: 0.8
+          404: 0.1
+          500: 0.1
+          
+    # FastAPI logs
+    fastapi:
+      enabled: true
+      frequency: 0.3                # 30% of total logs
+      log_levels:
+        - "INFO"
+        - "WARNING"
+        - "ERROR"
+      endpoints:
+        - "/api/users"
+        - "/api/orders"
+        - "/health"
+        
+    # System logs
+    syslog:
+      enabled: true
+      frequency: 0.2                # 20% of total logs
+      facilities:
+        - "kern"
+        - "daemon"
+      severities:
+        - "info"
+        - "warning"
+        - "err"
+    
+    # Disable other log types
+    nginx_error:
+      enabled: false

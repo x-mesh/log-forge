@@ -1,0 +1,91 @@
+# Default configuration for Log Generator Tool
+# 로그 생성기 기본 설정 파일
+
+log_generator:
+  # Global settings
+  global:
+    output_format: "multi_file"     # multi_file, file, console, network, json
+    output_path: "./logs"           # Output directory for file output
+    generation_interval: 0.1        # Seconds between log generation
+    total_logs: 10000              # Total number of logs to generate (0 = infinite)
+    
+    # Time settings
+    virtual_time: true              # Use virtual time for performance (default: true)
+    start_time: null                # Start time for logs (format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+    
+    # Multi-file output settings (default output format)
+    multi_file:
+      file_pattern: "{log_type}_{date}.log"  # Pattern: {log_type}, {date}, {time}, {datetime}
+      date_format: "%Y%m%d"                  # Date format for file names
+      separate_by_type: true                 # Create separate files for each log type
+    
+  # Log type configurations
+  log_types:
+    # Nginx access logs
+    nginx_access:
+      enabled: true
+      frequency: 0.3                # 30% of total logs
+      patterns:
+        - "combined"                # Combined log format
+        - "common"                  # Common log format
+      custom_fields:
+        ip_ranges: 
+          - "192.168.1.0/24"
+          - "10.0.0.0/8"
+        status_codes:
+          200: 0.7                  # 70% success
+          404: 0.15                 # 15% not found
+          500: 0.1                  # 10% server error
+          403: 0.05                 # 5% forbidden
+        user_agents:
+          - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+          - "curl/7.68.0"
+          
+    # Nginx error logs  
+    nginx_error:
+      enabled: true
+      frequency: 0.05               # 5% of total logs
+      error_levels: 
+        - "error"
+        - "warn" 
+        - "crit"
+        
+    # System logs
+    syslog:
+      enabled: true
+      frequency: 0.2                # 20% of total logs
+      facilities:
+        - "kern"
+        - "mail"
+        - "daemon"
+        - "auth"
+      severities:
+        - "info"
+        - "notice"
+        - "warning"
+        - "err"
+        
+    # FastAPI application logs
+    fastapi:
+      enabled: true
+      frequency: 0.25               # 25% of total logs
+      log_levels:
+        - "INFO"
+        - "DEBUG"
+        - "WARNING"
+        - "ERROR"
+      endpoints:
+        - "/api/users"
+        - "/api/orders"
+        - "/health"
+        - "/metrics"
+        
+    # Custom log format (disabled by default)
+    custom:
+      enabled: false
+      template: "{timestamp} [{level}] {message}"
+      fields:
+        timestamp: "datetime"
+        level: ["INFO", "WARN", "ERROR"]
+        message: "sentence"

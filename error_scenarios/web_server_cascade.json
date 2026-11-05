@@ -1,0 +1,13 @@
+{
+  "name": "web_server_cascade",
+  "description": "Web server errors cascading from upstream issues",
+  "category": "web_server",
+  "patterns": ["nginx_timeout", "nginx_connection_refused", "apache_file_not_found"],
+  "sequence_rules": {
+    "start_pattern": "nginx_timeout",
+    "escalation_chain": ["nginx_timeout", "nginx_connection_refused", "apache_file_not_found"],
+    "escalation_delay_minutes": [1, 3, 8]
+  },
+  "duration_minutes": 30,
+  "escalation_probability": 0.5
+}

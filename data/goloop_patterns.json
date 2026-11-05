@@ -1,0 +1,291 @@
+{
+  "sub_modules": {
+    "CS": [
+      "V1",
+      "V2",
+      ""
+    ],
+    "BM": [
+      "",
+      "V1"
+    ],
+    "SV": [
+      "",
+      "TM",
+      "VM"
+    ],
+    "NM": [
+      ""
+    ],
+    "fastsync": [
+      ""
+    ],
+    "TP": [
+      ""
+    ],
+    "EE": [
+      "",
+      "JAVA",
+      "PYTHON"
+    ],
+    "PL": [
+      "",
+      "SCORE"
+    ],
+    "DB": [
+      "",
+      "LEVEL"
+    ],
+    "IC": [
+      "",
+      "CHAIN"
+    ],
+    "NT": [
+      "V1",
+      "V2",
+      ""
+    ],
+    "ST": [
+      "",
+      "V1"
+    ],
+    "TX": [
+      "",
+      "POOL"
+    ],
+    "SM": [
+      "",
+      "API"
+    ],
+    "CH": [
+      "",
+      "API"
+    ],
+    "RP": [
+      "",
+      "API"
+    ],
+    "P2P": [
+      "",
+      "PEER"
+    ]
+  },
+  "log_patterns": {
+    "CS": [
+      "ReceiveBlock Height:",
+      "OnReceive(msg:PeerRoundStateMessage{",
+      "OnReceive(msg:VoteMessage{",
+      "OnReceive(msg:ProposalMessage{",
+      "OnReceive(msg:BlockPartMessage{",
+      "consensus round started",
+      "consensus vote received",
+      "consensus decision reached",
+      "validator set updated",
+      "consensus timeout"
+    ],
+    "BM": [
+      "ImportBlock(",
+      "Finalize(",
+      "ProposeBlock height=",
+      "ValidateBlock(",
+      "AddBlock height=",
+      "RemoveBlock height=",
+      "BlockManager.Start()"
+    ],
+    "SV": [
+      "PatchTransition(patchTxs=<>)",
+      "reportValidation(err=<nil>)",
+      "Transition.doExecute: height=",
+      "finalizeResult() total=",
+      "Transactions:",
+      "reportExecution(err=<nil>)",
+      "TM.NotifyFinalized waiters_before=",
+      "txshare.go:224 handleTxRequest(bits=",
+      "txshare.go:228 ShareTransactions(txs=",
+      "txshare.go:257 sendTxRequest(bits=",
+      "service started",
+      "service stopped",
+      "API request received",
+      "API response sent",
+      "service initialization failed"
+    ],
+    "NM": [
+      "p2p.go:279 onPeer {",
+      "p2p.go:1323 discoverFriends dial to p2pRoleRoot",
+      "p2p.go:751 handleRttResponse"
+    ],
+    "fastsync": [
+      "client.go:286 onResult",
+      "client.go:429 Request RequestID:"
+    ],
+    "TP": [
+      "channelnegotiator.go:135 support defaultProtocols : true sub=negotiator",
+      "authenticator.go:450 handleSignatureResponse"
+    ],
+    "NT": [
+      "p2p.Connect(",
+      "p2p.Disconnect(",
+      "Received message from peer:",
+      "Send message to peer:",
+      "Network started on port:",
+      "Peer connection established:"
+    ],
+    "ST": [
+      "StateManager.Start()",
+      "StateTransition height=",
+      "State root changed:",
+      "Account state updated:",
+      "Contract deployed at:",
+      "Contract call result:"
+    ],
+    "TX": [
+      "transaction added to pool",
+      "transaction removed from pool",
+      "transaction validation failed",
+      "transaction executed successfully",
+      "transaction reverted"
+    ],
+    "SM": [
+      "ServiceManager.Start()",
+      "API server started on:",
+      "API request received:",
+      "API response sent:",
+      "Service configuration:"
+    ],
+    "CH": [
+      "Chain.Start()",
+      "Genesis block loaded:",
+      "Chain height updated:",
+      "Chain configuration:"
+    ],
+    "RP": [
+      "RPC server started:",
+      "RPC request method:",
+      "RPC response:",
+      "RPC error:"
+    ],
+    "P2P": [
+      "Peer connected:",
+      "Peer disconnected:",
+      "Message broadcast:",
+      "Peer discovery:"
+    ],
+    "EE": [
+      "execution engine started",
+      "contract execution started",
+      "contract execution completed",
+      "virtual machine initialized",
+      "execution environment setup",
+      "score deployment"
+    ],
+    "PL": [
+      "plugin loaded:",
+      "plugin initialized:",
+      "plugin execution started",
+      "plugin execution completed",
+      "score call:",
+      "external call:"
+    ],
+    "DB": [
+      "database opened:",
+      "database closed:",
+      "compaction started",
+      "compaction completed",
+      "snapshot created:",
+      "backup started:"
+    ],
+    "IC": [
+      "ICON chain initialized",
+      "governance call:",
+      "network proposal:",
+      "validator update:",
+      "network parameter changed:",
+      "revision updated:"
+    ]
+  },
+  "source_files": {
+    "CS": [
+      "fastsyncer.go",
+      "consensus.go",
+      "reactor.go",
+      "view.go"
+    ],
+    "BM": [
+      "manager.go",
+      "blockmanager.go",
+      "importer.go"
+    ],
+    "SV": [
+      "transition.go",
+      "transactionmanager.go",
+      "txshare.go",
+      "manager.go",
+      "executor.go"
+    ],
+    "NM": [
+      "p2p.go"
+    ],
+    "fastsync": [
+      "client.go"
+    ],
+    "TP": [
+      "channelnegotiator.go",
+      "authenticator.go"
+    ],
+    "EE": [
+      "execution.go",
+      "vm.go",
+      "engine.go"
+    ],
+    "PL": [
+      "plugin.go",
+      "score.go",
+      "loader.go"
+    ],
+    "DB": [
+      "database.go",
+      "leveldb.go",
+      "badger.go"
+    ],
+    "IC": [
+      "icon.go",
+      "governance.go",
+      "network.go"
+    ],
+    "NT": [
+      "network.go",
+      "transport.go",
+      "peer.go"
+    ],
+    "ST": [
+      "statemanager.go",
+      "state.go",
+      "transition.go"
+    ],
+    "TX": [
+      "pool.go",
+      "transaction.go",
+      "validator.go"
+    ],
+    "SM": [
+      "manager.go",
+      "api.go",
+      "service.go"
+    ],
+    "CH": [
+      "chain.go",
+      "genesis.go",
+      "config.go"
+    ],
+    "RP": [
+      "server.go",
+      "handler.go",
+      "api.go"
+    ],
+    "P2P": [
+      "peer.go",
+      "transport.go",
+      "discovery.go"
+    ]
+  }
+}

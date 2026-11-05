@@ -1,0 +1,79 @@
+# Goloop Log Generator Configuration
+# ICON 블록체인 goloop 노드 로그 생성 설정
+
+log_generator:
+  global:
+    # 출력 형식: file, console, network, json, multi_file
+    output_format: "file"
+    
+    # 출력 경로
+    output_path: "./logs/goloop.log"
+    
+    # 로그 생성 간격 (초)
+    # 0.1 = 초당 10개, 0.01 = 초당 100개
+    generation_interval: 0.1
+    
+    # 총 생성할 로그 수 (0 = 무제한)
+    total_logs: 0
+    
+    # 가상 시간 사용 (실제 sleep 없이 빠른 생성)
+    virtual_time: false
+    
+  log_types:
+    goloop:
+      enabled: true
+      frequency: 1.0
+      
+      # 로그 형식: "text" 또는 "json"
+      format_type: "text"
+      
+      # 블록 높이 범위 [최소, 최대]
+      height_range: [69571000, 69572000]
+      
+      # 로그 레벨 분포 (합계 1.0)
+      log_levels:
+        D: 0.60  # Debug - 상세한 디버깅 정보
+        I: 0.25  # Info - 일반 정보성 메시지
+        W: 0.10  # Warning - 경고 메시지
+        E: 0.04  # Error - 에러 메시지
+        F: 0.01  # Fatal - 치명적 에러
+      
+      # 모듈별 생성 빈도 (합계 1.0)
+      module_weights:
+        CS: 0.25        # Consensus - 합의 관련
+        BM: 0.20        # Block Manager - 블록 관리
+        SV: 0.20        # Service - 서비스 레이어
+        NM: 0.15        # Network Manager - 네트워크 관리
+        fastsync: 0.10  # Fast Sync - 빠른 동기화
+        TP: 0.05        # Transport Protocol - 전송 프로토콜
+        EE: 0.05        # Execution Engine - 실행 엔진
+        # 나머지 모듈들은 자동으로 균등 분배됨
+        # PL, DB, IC, NT, ST, TX, SM, CH, RP, P2P
+
+# 성능 최적화 설정 (선택사항)
+performance:
+  # 스레드 수 (CPU 코어 수에 맞춰 조정)
+  threads: 4
+  
+  # 배치 처리 크기
+  batch_size: 1000
+  
+  # 메모리 버퍼 크기
+  buffer_size: 10000
+  
+  # 비동기 I/O 활성화
+  async_io: true
+
+# 로그 로테이션 설정 (선택사항)
+log_rotation:
+  # 로테이션 활성화
+  enabled: false
+  
+  # 최대 파일 크기 (MB)
+  max_size: 100
+  
+  # 보관할 최대 파일 수
+  max_files: 10
+  
+  # 압축 여부
+  compress: true

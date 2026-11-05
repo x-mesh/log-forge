@@ -1,0 +1,64 @@
+# Basic Configuration Template for Log Generator Tool
+# 기본 로그 생성 설정 템플릿
+
+log_generator:
+  # 전역 설정
+  global:
+    # 출력 형식: file, console, network, json
+    output_format: "file"
+    
+    # 출력 경로 (파일 출력 시)
+    output_path: "./logs"
+    
+    # 로그 생성 간격 (초)
+    generation_interval: 1.0
+    
+    # 총 생성할 로그 수 (0 = 무제한)
+    total_logs: 10000
+    
+    # 로그 로테이션 설정
+    log_rotation:
+      enabled: true
+      max_size: "100MB"
+      max_files: 10
+      compress: false
+
+  # 로그 타입별 설정
+  log_types:
+    # Nginx 접근 로그
+    nginx_access:
+      enabled: true
+      frequency: 0.4  # 전체 로그의 40%
+      patterns: ["combined"]  # combined, common
+      
+    # 시스템 로그
+    syslog:
+      enabled: true
+      frequency: 0.3  # 전체 로그의 30%
+      facilities: ["kern", "mail", "daemon"]
+      severities: ["info", "notice", "warning"]
+      rfc_format: "3164"  # 3164 또는 5424
+      
+    # FastAPI 애플리케이션 로그
+    fastapi:
+      enabled: true
+      frequency: 0.3  # 전체 로그의 30%
+      log_levels: ["INFO", "DEBUG", "WARNING", "ERROR"]
+      endpoints: ["/api/users", "/api/orders", "/health"]
+
+  # 성능 설정
+  performance:
+    # 스레드 수
+    threads: 2
+    
+    # 배치 크기
+    batch_size: 100
+    
+    # 버퍼 크기
+    buffer_size: 1000
+
+  # 로깅 설정
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file: "./logs/generator.log"

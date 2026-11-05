@@ -1,0 +1,54 @@
+[package]
+name = "log-forge"
+version = "0.1.0"
+edition = "2024"
+default-run = "log-forge"
+description = "Generate synthetic logs for pipeline tests"
+license = "MIT"
+include = [
+    "/src/**",
+    "/data/**",
+    "/config/**",
+    "/demo_patterns/**",
+    "/error_patterns/**",
+    "/error_scenarios/**",
+    "/tests/**",
+    "/examples/**",
+    "/docs/**",
+    "/scripts/**",
+    "/benchmarks/**",
+    "/adapters/**",
+    "/Cargo.toml",
+    "/Cargo.lock",
+    "/README.md",
+    "/LICENSE",
+    "/Dockerfile",
+    "/docker-compose.yml",
+    "!**/__pycache__/**",
+    "!**/*.pyc",
+]
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+clap = { version = "4", features = ["derive"] }
+ctrlc = { version = "3", features = ["termination"] }
+flate2 = "1"
+memory-stats = { version = "1", features = ["always_use_statm"] }
+prost = "0.14"
+rand = "0.8"
+rayon = "1"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+snap = "1"
+sysinfo = { version = "0.40", default-features = false, features = ["system"] }
+tempfile = "3"
+
+
+[dev-dependencies]
+socket2 = "0.6"
+
+[target."cfg(windows)".dependencies]
+interprocess = "2"
+widestring = "1"

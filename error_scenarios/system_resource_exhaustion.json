@@ -1,0 +1,13 @@
+{
+  "name": "system_resource_exhaustion",
+  "description": "System resources become exhausted causing multiple failures",
+  "category": "system",
+  "patterns": ["disk_space_full", "memory_allocation_failed", "service_failed_to_start"],
+  "sequence_rules": {
+    "start_pattern": "memory_allocation_failed",
+    "escalation_chain": ["memory_allocation_failed", "disk_space_full", "service_failed_to_start"],
+    "escalation_delay_minutes": [5, 10, 15]
+  },
+  "duration_minutes": 60,
+  "escalation_probability": 0.8
+}

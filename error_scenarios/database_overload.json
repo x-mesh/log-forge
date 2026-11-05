@@ -1,0 +1,13 @@
+{
+  "name": "database_overload",
+  "description": "Database becomes overloaded leading to cascading failures",
+  "category": "database",
+  "patterns": ["mysql_connection_lost", "postgresql_deadlock", "database_slow_query"],
+  "sequence_rules": {
+    "start_pattern": "database_slow_query",
+    "escalation_chain": ["database_slow_query", "mysql_connection_lost", "postgresql_deadlock"],
+    "escalation_delay_minutes": [2, 5, 10]
+  },
+  "duration_minutes": 45,
+  "escalation_probability": 0.7
+}

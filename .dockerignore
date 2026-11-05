@@ -1,0 +1,17 @@
+*
+!Cargo.toml
+!Cargo.lock
+!src/
+!src/**
+!data/
+!data/**
+!config/
+!config/**
+!demo_patterns/
+!demo_patterns/**
+!error_patterns/
+!error_patterns/**
+!error_scenarios/
+!error_scenarios/**
+!adapters/
+!adapters/**

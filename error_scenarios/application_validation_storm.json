@@ -1,0 +1,13 @@
+{
+  "name": "application_validation_storm",
+  "description": "High volume of validation errors indicating potential attack or bug",
+  "category": "application",
+  "patterns": ["fastapi_validation_error", "api_rate_limit_exceeded", "django_database_error"],
+  "sequence_rules": {
+    "start_pattern": "fastapi_validation_error",
+    "escalation_chain": ["fastapi_validation_error", "api_rate_limit_exceeded", "django_database_error"],
+    "escalation_delay_minutes": [1, 2, 5]
+  },
+  "duration_minutes": 20,
+  "escalation_probability": 0.4
+}

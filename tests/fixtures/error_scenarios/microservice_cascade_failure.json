@@ -1,0 +1,25 @@
+{
+  "name": "microservice_cascade_failure",
+  "description": "Cascading failure across microservices starting with database issues",
+  "category": "infrastructure",
+  "patterns": [
+    "mysql_connection_lost",
+    "api_gateway_timeout",
+    "kubernetes_pod_evicted"
+  ],
+  "sequence_rules": {
+    "start_pattern": "mysql_connection_lost",
+    "escalation_chain": [
+      "mysql_connection_lost",
+      "api_gateway_timeout",
+      "kubernetes_pod_evicted"
+    ],
+    "escalation_delay_minutes": [
+      2,
+      5,
+      10
+    ]
+  },
+  "duration_minutes": 25,
+  "escalation_probability": 0.8
+}

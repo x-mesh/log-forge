@@ -1,0 +1,106 @@
+{
+  "kern": [
+    "Out of memory: Kill process {pid} ({process}) score {score} or sacrifice child",
+    "TCP: Peer {ip}:{port} unexpectedly shrunk window",
+    "device eth0 entered promiscuous mode",
+    "device eth0 left promiscuous mode",
+    "segfault at {address} ip {ip} sp {sp} error {error} in {process}[{address}+{size}]",
+    "CPU{cpu}: Core temperature above threshold, cpu clock throttled",
+    "ACPI: Battery Slot (BAT0) {status}",
+    "USB disconnect, address {address}",
+    "kernel: [ {uptime:.6f} ] {iface}: link is {link_state}",
+    "iptables: IN={iface} OUT= MAC={mac} SRC={ip} DST={ip2} LEN={len} TOS=0x00 PREC=0x00 TTL={ttl} ID={ip_id} PROTO={proto} SPT={sport} DPT={dport} WINDOW={window} RES=0x00 {tcp_flags}",
+    "EXT4-fs ({disk}): mounted filesystem with ordered data mode. Opts: {mount_opts}",
+    "block {disk}: I/O error, dev {disk}, sector {sector}",
+    "audit: type=ANOM_ABEND msg=audit({epoch}.{msec}): auid={uid} uid={uid} gid={gid} ses={ses} pid={pid} comm=\"{process}\"",
+    "perf: interrupt took too long ({latency} > {latency_thresh}), lowering kernel.perf_event_max_sample_rate to {sample_rate}"
+  ],
+  "daemon": [
+    "Starting {service} daemon",
+    "Stopping {service} daemon",
+    "{service}: configuration reloaded",
+    "{service}: worker process {pid} exited with code {code}",
+    "{service}: bind() to {ip}:{port} failed ({errno}: {error})",
+    "{service}: accept() failed ({errno}: {error})",
+    "{service}: connection from {ip} refused (access denied)",
+    "systemd[1]: Started {service}.service",
+    "systemd[1]: Failed to start {service}.service",
+    "systemd[1]: {service}.service: Main process exited, code=exited, status={code}",
+    "NetworkManager[{pid}]: <info>  [{time}] device ({iface}): state change: {nm_old_state} -> {nm_new_state}",
+    "dnsmasq[{pid}]: reply {fqdn} is {ip}",
+    "docker[{pid}]: Container {container_id} ({image}) started",
+    "containerd[{pid}]: Task {container_id} exit code {code}"
+  ],
+  "auth": [
+    "Accepted password for {user} from {ip} port {port} ssh2",
+    "Failed password for {user} from {ip} port {port} ssh2",
+    "Invalid user {user} from {ip} port {port}",
+    "Connection closed by {ip} port {port} [preauth]",
+    "pam_unix(sshd:session): session opened for user {user} by (uid=0)",
+    "pam_unix(sshd:session): session closed for user {user}",
+    "sudo: {user} : TTY=pts/{tty} ; PWD={pwd} ; USER=root ; COMMAND={command}",
+    "su: (to root) {user} on pts/{tty}",
+    "sshd[{pid}]: Did not receive identification string from {ip}",
+    "sshd[{pid}]: Received disconnect from {ip} port {port}: 11: disconnected by user",
+    "sudo: pam_unix(sudo:auth): authentication failure; logname={user} uid={uid} euid=0 tty=pts/{tty} ruser={user} rhost={hostname}"
+  ],
+  "mail": [
+    "postfix/smtpd[{pid}]: connect from {hostname}[{ip}]",
+    "postfix/smtpd[{pid}]: disconnect from {hostname}[{ip}]",
+    "postfix/cleanup[{pid}]: {queue_id}: message-id=<{message_id}>",
+    "postfix/qmgr[{pid}]: {queue_id}: from=<{from}>, size={size}, nrcpt={nrcpt}",
+    "postfix/smtp[{pid}]: {queue_id}: to=<{to}>, relay={relay}, status=sent",
+    "dovecot: imap-login: Login: user=<{user}>, method=PLAIN, rip={ip}",
+    "dovecot: imap({user}): Disconnected: Logged out",
+    "postfix/smtp[{pid}]: {queue_id}: to=<{to}>, relay={relay}, delay={delay}, delays={delays}, dsn=2.0.0, status=sent (250 2.0.0 Ok: queued as {queue_id2})",
+    "postfix/smtpd[{pid}]: NOQUEUE: reject: RCPT from {hostname}[{ip}]: 554 5.7.1 Relay access denied; from=<{from}> to=<{to}> proto=ESMTP helo=<{hostname}>",
+    "dovecot: imap({user}): Connection closed (bytes={bytes_in}/{bytes_out})"
+  ],
+  "cron": [
+    "({user}) CMD ({command})",
+    "pam_unix(cron:session): session opened for user {user} by (uid=0)",
+    "pam_unix(cron:session): session closed for user {user}",
+    "({user}) RELOAD ({file})",
+    "({user}) LIST ({user})",
+    "({user}) DELETE ({user})",
+    "Maximum number of errors from {user} reached. Disabling until next restart.",
+    "CRON[{pid}]: pam_unix(cron:session): session opened for user {user} by (uid=0)",
+    "CRON[{pid}]: pam_unix(cron:session): session closed for user {user}",
+    "(root) CMD ({command})"
+  ],
+  "syslog": [
+    "rsyslogd was HUPed",
+    "rsyslogd: [origin software=\"rsyslogd\" swVersion=\"{version}\"] start",
+    "rsyslogd: [origin software=\"rsyslogd\" swVersion=\"{version}\"] exiting on signal 15",
+    "rsyslogd-2007: action 'action 17' suspended, next retry is {time}",
+    "rsyslogd: imuxsock begins to drop messages from pid {pid} due to rate-limiting",
+    "rsyslogd: imjournal: journal files changed, reloading...",
+    "rsyslogd: omfile: buffer grown to {bufsize} bytes"
+  ],
+  "authpriv": [
+    "sshd[{pid}]: Accepted publickey for {user} from {ip} port {port} ssh2: RSA {fingerprint}",
+    "sshd[{pid}]: Authentication refused: bad ownership or modes for directory {path}",
+    "sshd[{pid}]: User {user} from {ip} not allowed because not listed in AllowUsers"
+  ],
+  "user": [
+    "useradd[{pid}]: new user: name={user}, UID={uid}, GID={gid}, home={home}, shell=/bin/bash",
+    "passwd[{pid}]: password changed for {user}",
+    "chsh[{pid}]: changed user '{user}' shell to /bin/zsh"
+  ],
+  "local0": [
+    "local_app[{pid}]: request_id={req_id} path=\"{url_path}\" status={http_status} latency={latency}ms",
+    "local_app[{pid}]: cache {cache_op} key=\"{cache_key}\" result={cache_result}"
+  ],
+  "local1": [
+    "custom_daemon[{pid}]: worker {wid} heartbeat ok (load={load_avg})",
+    "custom_daemon[{pid}]: worker {wid} restart due to {reason}"
+  ],
+  "local2": [
+    "monitoring[{pid}]: probe {target} up={up} rtt={rtt}ms",
+    "monitoring[{pid}]: alert {alert_id} severity={sev} rule=\"{rule}\""
+  ],
+  "local3": [
+    "backup[{pid}]: snapshot {snapshot_id} completed size={bytes_out}B duration={duration}s",
+    "backup[{pid}]: prune removed={removed} kept={kept}"
+  ]
+}

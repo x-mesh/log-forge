@@ -1,0 +1,64 @@
+# High Performance configuration for Log Generator Tool
+# 고성능 로그 생성을 위한 최적화된 설정
+
+log_generator:
+  # Global settings optimized for performance
+  global:
+    output_format: "multi_file"     # Multi-file output for better organization
+    output_path: "./logs"           # Output directory
+    generation_interval: 0.01       # Very fast generation (10ms intervals)
+    total_logs: 0                   # Unlimited generation
+    
+    # Multi-file output settings
+    multi_file:
+      file_pattern: "{log_type}_{date}.log"
+      date_format: "%Y%m%d"
+    
+    # Performance optimizations
+    buffer_size: 65536              # 64KB buffer for better I/O performance
+    batch_size: 50                  # Process logs in batches
+    
+  # Log type configurations optimized for high throughput
+  log_types:
+    # Nginx access logs - high frequency
+    nginx_access:
+      enabled: true
+      frequency: 0.4                # 40% of total logs
+      patterns:
+        - "combined"
+      custom_fields:
+        ip_ranges: 
+          - "192.168.1.0/24"
+          - "10.0.0.0/8"
+        status_codes:
+          200: 0.85                 # More success responses for faster generation
+          404: 0.10
+          500: 0.05
+        user_agents:
+          - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          - "curl/7.68.0"
+          
+    # FastAPI logs - medium frequency
+    fastapi:
+      enabled: true
+      frequency: 0.35               # 35% of total logs
+      log_levels:
+        - "INFO"
+        - "DEBUG"
+        - "WARNING"
+      endpoints:
+        - "/api/users"
+        - "/api/orders"
+        - "/health"
+        
+    # System logs - lower frequency
+    syslog:
+      enabled: true
+      frequency: 0.2                # 20% of total logs
+      facilities:
+        - "kern"
+        - "daemon"
+      severities:
+        - "info"
+        - "notice"
+        - "warning"

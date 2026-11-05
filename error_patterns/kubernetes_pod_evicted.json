@@ -1,0 +1,18 @@
+{
+  "id": "kubernetes_pod_evicted",
+  "category": "infrastructure",
+  "severity": "warning",
+  "message_template": "Pod {pod_name} evicted: {reason}",
+  "description": "Pod eviction",
+  "frequency_weight": 1.0,
+  "context_fields": {
+    "pod_name": [
+      "web-app-123"
+    ],
+    "reason": [
+      "OutOfMemory"
+    ]
+  },
+  "real_world_examples": [],
+  "created_at": "2025-09-11T15:42:40.791508"
+}

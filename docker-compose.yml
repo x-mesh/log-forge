@@ -1,0 +1,5 @@
+services:
+  log-forge:
+    build: .
+    init: true
+    command: ["start", "--output", "console", "--no-monitor"]

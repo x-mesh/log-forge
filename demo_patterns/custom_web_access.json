@@ -1,0 +1,48 @@
+{
+  "name": "custom_web_access",
+  "template": "{timestamp} {ip_address} - {username} [{iso_timestamp}] \"{http_method} {url} HTTP/1.1\" {http_status_code} {file_size} \"{referer}\" \"{user_agent}\"",
+  "description": "Custom web access log pattern with Faker integration",
+  "category": "web_server",
+  "fields": {
+    "ip_address": {
+      "type": "faker",
+      "generator": "ip_address"
+    },
+    "username": {
+      "type": "faker",
+      "generator": "username"
+    },
+    "http_method": {
+      "type": "faker",
+      "generator": "http_method"
+    },
+    "url": {
+      "type": "choice",
+      "options": [
+        "/",
+        "/api/users",
+        "/api/orders",
+        "/health"
+      ]
+    },
+    "http_status_code": {
+      "type": "faker",
+      "generator": "http_status_code"
+    },
+    "file_size": {
+      "type": "faker",
+      "generator": "file_size"
+    },
+    "referer": {
+      "type": "faker",
+      "generator": "referer"
+    },
+    "user_agent": {
+      "type": "faker",
+      "generator": "user_agent"
+    }
+  },
+  "sample_output": "2025-09-07 06:52:11 192.168.57.186 - jamesshawn [2025-09-06T15:36:02.225853] \"GET http://clark-adams.com/ HTTP/1.1\" 400 532 \"http://www.ford.net/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0\"",
+  "created_at": "2025-09-11T15:02:28.303556",
+  "updated_at": "2025-09-11T15:02:28.303556"
+}

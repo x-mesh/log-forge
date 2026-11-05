@@ -1,0 +1,140 @@
+{
+  "log_generator": {
+    "global": {
+      "output_format": "multi_file",
+      "output_path": "./logs",
+      "generation_interval": 0.1,
+      "random_interval": false,
+      "total_logs": 10000,
+      "multi_file": {
+        "file_pattern": "{log_type}_{date}.log",
+        "date_format": "%Y%m%d",
+        "separate_by_type": true
+      },
+      "virtual_time": true,
+      "start_time": null
+    },
+    "log_types": {
+      "nginx_access": {
+        "enabled": true,
+        "frequency": 0.4,
+        "patterns": [
+          "combined",
+          "common"
+        ],
+        "custom_fields": {
+          "ip_ranges": [
+            "192.168.1.0/24",
+            "10.0.0.0/8"
+          ],
+          "status_codes": {
+            "200": 0.7,
+            "404": 0.15,
+            "500": 0.1,
+            "403": 0.05
+          },
+          "user_agents": [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            "curl/7.68.0"
+          ]
+        }
+      },
+      "nginx_error": {
+        "enabled": true,
+        "frequency": 0.05,
+        "error_levels": [
+          "error",
+          "warn",
+          "crit"
+        ]
+      },
+      "syslog": {
+        "enabled": true,
+        "frequency": 0.15,
+        "facilities": [
+          "kern",
+          "mail",
+          "daemon",
+          "auth"
+        ],
+        "severities": [
+          "info",
+          "notice",
+          "warning",
+          "err"
+        ]
+      },
+      "fastapi": {
+        "enabled": true,
+        "frequency": 0.15,
+        "log_levels": [
+          "INFO",
+          "DEBUG",
+          "WARNING",
+          "ERROR"
+        ],
+        "endpoints": [
+          "/api/users",
+          "/api/orders",
+          "/health",
+          "/metrics"
+        ]
+      },
+      "goloop": {
+        "enabled": true,
+        "frequency": 0.2,
+        "format_type": "text",
+        "log_levels": {
+          "D": 0.6,
+          "I": 0.25,
+          "W": 0.1,
+          "E": 0.04,
+          "F": 0.01
+        },
+        "modules": {
+          "CS": 0.2,
+          "BM": 0.15,
+          "SV": 0.25,
+          "NM": 0.15,
+          "fastsync": 0.1,
+          "TP": 0.05,
+          "EE": 0.03,
+          "PL": 0.02,
+          "DB": 0.02,
+          "IC": 0.03
+        },
+        "network": {
+          "use_real_ips": true,
+          "p2p_port": 7100,
+          "local_ip": "172.17.0.2"
+        },
+        "blockchain": {
+          "network_id": "0x1",
+          "height_range": [
+            1000,
+            999999
+          ],
+          "revision_range": [
+            10,
+            25
+          ]
+        }
+      },
+      "custom": {
+        "enabled": false,
+        "frequency": 0.2,
+        "template": "{timestamp} [{level}] {message}",
+        "fields": {
+          "timestamp": "datetime",
+          "level": [
+            "INFO",
+            "WARN",
+            "ERROR"
+          ],
+          "message": "sentence"
+        }
+      }
+    }
+  }
+}

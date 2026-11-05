@@ -1,0 +1,332 @@
+# Microservices Configuration Template
+# 마이크로서비스 환경을 위한 로그 생성 설정
+
+log_generator:
+  global:
+    output_format: "json"
+    output_path: "./logs/microservices"
+    generation_interval: 0.05  # 높은 빈도로 생성
+    total_logs: 0  # 무제한
+    
+    log_rotation:
+      enabled: true
+      max_size: "200MB"
+      max_files: 20
+      compress: true
+
+  log_types:
+    # API Gateway 로그
+    api_gateway:
+      enabled: true
+      frequency: 0.25
+      service_name: "api-gateway"
+      endpoints:
+        - "/api/v1/users/*"
+        - "/api/v1/orders/*"
+        - "/api/v1/products/*"
+        - "/api/v1/payments/*"
+        - "/api/v1/notifications/*"
+      
+      custom_fields:
+        # 마이크로서비스 라우팅
+        upstream_services:
+          - "user-service"
+          - "order-service"
+          - "product-service"
+          - "payment-service"
+          - "notification-service"
+        
+        # API Gateway 특화 상태 코드
+        status_codes:
+          200: 0.65
+          201: 0.10
+          400: 0.08
+          401: 0.05
+          403: 0.03
+          404: 0.04
+          500: 0.03
+          502: 0.01  # Bad Gateway
+          503: 0.01  # Service Unavailable
+        
+        # 응답 시간 (마이크로서비스 간 통신 포함)
+        response_times:
+          fast: {min: 50, max: 200, weight: 0.6}
+          medium: {min: 200, max: 800, weight: 0.3}
+          slow: {min: 800, max: 3000, weight: 0.1}
+
+    # User Service 로그
+    user_service:
+      enabled: true
+      frequency: 0.15
+      service_name: "user-service"
+      log_levels: ["INFO", "DEBUG", "WARNING", "ERROR"]
+      
+      operations:
+        - "user_registration"
+        - "user_authentication"
+        - "profile_update"
+        - "password_change"
+        - "user_deletion"
+      
+      custom_fields:
+        # 사용자 관련 이벤트
+        events:
+          - "User {user_id} registered successfully"
+          - "Authentication failed for user {username}"
+          - "Profile updated for user {user_id}"
+          - "Password changed for user {user_id}"
+          - "User {user_id} deleted"
+        
+        # 데이터베이스 쿼리
+        db_operations:
+          - "SELECT * FROM users WHERE email = ?"
+          - "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"
+          - "UPDATE users SET last_login = ? WHERE id = ?"
+
+    # Order Service 로그
+    order_service:
+      enabled: true
+      frequency: 0.15
+      service_name: "order-service"
+      
+      operations:
+        - "order_creation"
+        - "order_update"
+        - "order_cancellation"
+        - "inventory_check"
+        - "payment_processing"
+      
+      custom_fields:
+        events:
+          - "Order {order_id} created for user {user_id}"
+          - "Order {order_id} updated: status changed to {status}"
+          - "Order {order_id} cancelled by user {user_id}"
+          - "Inventory check failed for product {product_id}"
+          - "Payment processed for order {order_id}: amount {amount}"
+        
+        # 외부 서비스 호출
+        external_calls:
+          - "Calling inventory-service for product {product_id}"
+          - "Calling payment-service for order {order_id}"
+          - "Calling notification-service for user {user_id}"
+
+    # Product Service 로그
+    product_service:
+      enabled: true
+      frequency: 0.10
+      service_name: "product-service"
+      
+      operations:
+        - "product_search"
+        - "inventory_update"
+        - "price_update"
+        - "product_recommendation"
+      
+      custom_fields:
+        events:
+          - "Product search: query='{query}', results={count}"
+          - "Inventory updated for product {product_id}: {old_stock} -> {new_stock}"
+          - "Price updated for product {product_id}: {old_price} -> {new_price}"
+          - "Recommendations generated for user {user_id}: {product_ids}"
+
+    # Payment Service 로그
+    payment_service:
+      enabled: true
+      frequency: 0.10
+      service_name: "payment-service"
+      
+      operations:
+        - "payment_authorization"
+        - "payment_capture"
+        - "refund_processing"
+        - "fraud_detection"
+      
+      custom_fields:
+        events:
+          - "Payment authorized: transaction_id={transaction_id}, amount={amount}"
+          - "Payment captured: transaction_id={transaction_id}"
+          - "Refund processed: transaction_id={transaction_id}, amount={amount}"
+          - "Fraud detected: transaction_id={transaction_id}, reason={reason}"
+        
+        # 결제 게이트웨이 연동
+        gateway_calls:
+          - "Calling Stripe API for payment authorization"
+          - "Calling PayPal API for payment processing"
+          - "Webhook received from payment gateway"
+
+    # Notification Service 로그
+    notification_service:
+      enabled: true
+      frequency: 0.08
+      service_name: "notification-service"
+      
+      operations:
+        - "email_sending"
+        - "sms_sending"
+        - "push_notification"
+        - "webhook_delivery"
+      
+      custom_fields:
+        events:
+          - "Email sent to {email}: subject='{subject}'"
+          - "SMS sent to {phone}: message='{message}'"
+          - "Push notification sent to user {user_id}: title='{title}'"
+          - "Webhook delivered to {url}: payload_size={size}bytes"
+
+    # Message Queue 로그 (RabbitMQ/Kafka)
+    message_queue:
+      enabled: true
+      frequency: 0.07
+      service_name: "message-queue"
+      
+      operations:
+        - "message_published"
+        - "message_consumed"
+        - "queue_created"
+        - "consumer_connected"
+        - "consumer_disconnected"
+      
+      custom_fields:
+        events:
+          - "Message published to queue '{queue}': routing_key='{routing_key}'"
+          - "Message consumed from queue '{queue}': consumer='{consumer_id}'"
+          - "Queue '{queue}' created with {message_count} messages"
+          - "Consumer '{consumer_id}' connected to queue '{queue}'"
+          - "Consumer '{consumer_id}' disconnected from queue '{queue}'"
+
+    # Database 로그 (각 서비스별 DB)
+    database_logs:
+      enabled: true
+      frequency: 0.05
+      
+      databases:
+        - name: "user-db"
+          type: "postgresql"
+        - name: "order-db"
+          type: "postgresql"
+        - name: "product-db"
+          type: "mongodb"
+        - name: "payment-db"
+          type: "postgresql"
+      
+      custom_fields:
+        events:
+          - "Connection established to {db_name}"
+          - "Query executed on {db_name}: {query} ({duration}ms)"
+          - "Transaction committed on {db_name}"
+          - "Slow query detected on {db_name}: {query} ({duration}ms)"
+
+    # Container 로그 (Docker)
+    container_logs:
+      enabled: true
+      frequency: 0.05
+      
+      containers:
+        - "user-service-{instance}"
+        - "order-service-{instance}"
+        - "product-service-{instance}"
+        - "payment-service-{instance}"
+        - "notification-service-{instance}"
+        - "api-gateway-{instance}"
+        - "redis-{instance}"
+        - "rabbitmq-{instance}"
+      
+      custom_fields:
+        events:
+          - "Container {container_name} started"
+          - "Container {container_name} health check passed"
+          - "Container {container_name} memory usage: {memory_usage}MB"
+          - "Container {container_name} CPU usage: {cpu_usage}%"
+
+  # 마이크로서비스 특화 에러 패턴
+  error_patterns:
+    service_communication:
+      - pattern: "Service {service_name} unavailable: connection timeout"
+        frequency: 0.3
+        severity: "error"
+      - pattern: "Circuit breaker opened for service {service_name}"
+        frequency: 0.2
+        severity: "warning"
+      - pattern: "Retry limit exceeded for service {service_name}"
+        frequency: 0.2
+        severity: "error"
+    
+    database_errors:
+      - pattern: "Database connection pool exhausted for {db_name}"
+        frequency: 0.4
+        severity: "critical"
+      - pattern: "Transaction deadlock detected in {db_name}"
+        frequency: 0.3
+        severity: "error"
+    
+    message_queue_errors:
+      - pattern: "Message queue {queue_name} is full"
+        frequency: 0.3
+        severity: "warning"
+      - pattern: "Consumer {consumer_id} failed to process message"
+        frequency: 0.4
+        severity: "error"
+
+  # 분산 추적 설정
+  distributed_tracing:
+    enabled: true
+    trace_id_header: "X-Trace-Id"
+    span_id_header: "X-Span-Id"
+    
+    # 서비스 간 호출 추적
+    service_dependencies:
+      api-gateway: ["user-service", "order-service", "product-service"]
+      order-service: ["product-service", "payment-service", "notification-service"]
+      payment-service: ["notification-service"]
+
+  # 출력 설정 (마이크로서비스 환경)
+  output:
+    handlers:
+      # 중앙 로그 수집 (ELK Stack)
+      - type: "network"
+        protocol: "tcp"
+        host: "logstash.monitoring.svc.cluster.local"
+        port: 5044
+        format: "json"
+        
+      # 로컬 파일 (백업용)
+      - type: "file"
+        file_path: "./logs/microservices.json"
+        format: "json"
+        
+      # 메트릭 수집 (Prometheus)
+      - type: "network"
+        protocol: "http"
+        host: "prometheus.monitoring.svc.cluster.local"
+        port: 9090
+        endpoint: "/api/v1/write"
+        format: "prometheus"
+
+  # 성능 설정 (고부하 환경)
+  performance:
+    threads: 12
+    batch_size: 2000
+    buffer_size: 20000
+    memory_limit: "4GB"
+    async_io: true
+
+  # 모니터링
+  monitoring:
+    enable_statistics: true
+    statistics_interval: 5
+    
+    metrics:
+      enabled: true
+      format: "prometheus"
+      labels:
+        environment: "production"
+        cluster: "main"
+        
+    # 서비스별 메트릭
+    service_metrics:
+      - service: "api-gateway"
+        metrics: ["request_count", "response_time", "error_rate"]
+      - service: "user-service"
+        metrics: ["active_users", "registration_rate", "auth_failures"]
+      - service: "order-service"
+        metrics: ["order_count", "order_value", "cancellation_rate"]

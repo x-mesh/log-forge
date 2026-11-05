@@ -1,0 +1,40 @@
+{
+  "name": "api_request_detailed",
+  "template": "{iso_timestamp} [API] {session_id} {http_method} {endpoint} - Status: {http_status_code} - Duration: {response_time}ms - User: {email}",
+  "description": "Detailed API request log pattern",
+  "category": "application",
+  "fields": {
+    "session_id": {
+      "type": "faker",
+      "generator": "session_id"
+    },
+    "http_method": {
+      "type": "faker",
+      "generator": "http_method"
+    },
+    "endpoint": {
+      "type": "choice",
+      "options": [
+        "/api/v1/users",
+        "/api/v1/orders",
+        "/api/v1/products",
+        "/api/v1/auth"
+      ]
+    },
+    "http_status_code": {
+      "type": "faker",
+      "generator": "http_status_code"
+    },
+    "response_time": {
+      "type": "faker",
+      "generator": "response_time"
+    },
+    "email": {
+      "type": "faker",
+      "generator": "email"
+    }
+  },
+  "sample_output": "2025-08-24T15:52:47.127962 [API] f16287e4-e9c3-49e0-b602-f8ac10f1bc81 POST  - Status: 200 - Duration: 83.95ms - User: jason76@example.net",
+  "created_at": "2025-09-11T15:02:28.304093",
+  "updated_at": "2025-09-11T15:02:28.304093"
+}

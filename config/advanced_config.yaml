@@ -1,0 +1,293 @@
+# Advanced Configuration Template for Log Generator Tool
+# 고급 로그 생성 설정 템플릿
+
+log_generator:
+  # 전역 설정
+  global:
+    output_format: "json"
+    output_path: "./logs"
+    generation_interval: 0.1
+    total_logs: 0  # 무제한
+    
+    # 고급 로그 로테이션
+    log_rotation:
+      enabled: true
+      max_size: "500MB"
+      max_files: 50
+      compress: true
+      rotation_time: "daily"  # hourly, daily, weekly
+      backup_count: 30
+
+  # 로그 타입별 상세 설정
+  log_types:
+    # Nginx 로그 (접근 + 에러)
+    nginx_access:
+      enabled: true
+      frequency: 0.25
+      patterns: ["combined", "common"]
+      custom_fields:
+        # IP 주소 범위 설정
+        ip_ranges: 
+          - "192.168.1.0/24"
+          - "10.0.0.0/8"
+          - "172.16.0.0/12"
+        
+        # HTTP 상태 코드 분포
+        status_codes:
+          200: 0.70  # 70% 성공
+          301: 0.05  # 5% 리다이렉트
+          404: 0.15  # 15% Not Found
+          500: 0.05  # 5% 서버 오류
+          403: 0.03  # 3% 권한 오류
+          502: 0.02  # 2% Bad Gateway
+        
+        # 사용자 에이전트 목록
+        user_agents:
+          - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          - "curl/7.68.0"
+          - "wget/1.20.3"
+        
+        # 요청 URL 패턴
+        url_patterns:
+          - "/api/v1/users"
+          - "/api/v1/orders"
+          - "/api/v1/products"
+          - "/static/css/style.css"
+          - "/static/js/app.js"
+          - "/images/logo.png"
+          - "/favicon.ico"
+          - "/robots.txt"
+
+    nginx_error:
+      enabled: true
+      frequency: 0.05
+      error_levels: ["error", "warn", "crit", "alert"]
+      error_patterns:
+        - "connect() failed (111: Connection refused)"
+        - "upstream timed out"
+        - "no live upstreams while connecting to upstream"
+        - "SSL_do_handshake() failed"
+
+    # Apache 로그
+    apache_access:
+      enabled: true
+      frequency: 0.15
+      log_format: "combined"
+      virtual_hosts: 
+        - "example.com"
+        - "api.example.com"
+        - "cdn.example.com"
+      custom_fields:
+        status_codes:
+          200: 0.75
+          404: 0.12
+          500: 0.08
+          403: 0.05
+
+    # 시스템 로그 (다양한 facility)
+    syslog:
+      enabled: true
+      frequency: 0.20
+      facilities: ["kern", "mail", "daemon", "auth", "syslog", "user", "cron"]
+      severities: ["emerg", "alert", "crit", "err", "warning", "notice", "info", "debug"]
+      rfc_format: "5424"
+      
+      # facility별 메시지 패턴
+      message_patterns:
+        kern:
+          - "Out of memory: Kill process {pid} ({process_name})"
+          - "segfault at {address} ip {ip} sp {sp} error {error}"
+        auth:
+          - "Failed password for {username} from {ip} port {port}"
+          - "Accepted publickey for {username} from {ip} port {port}"
+        cron:
+          - "({username}) CMD ({command})"
+          - "({username}) RELOAD ({crontab})"
+
+    # FastAPI 애플리케이션 로그
+    fastapi:
+      enabled: true
+      frequency: 0.15
+      log_levels: ["INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"]
+      endpoints:
+        - "/api/v1/auth/login"
+        - "/api/v1/auth/logout"
+        - "/api/v1/users"
+        - "/api/v1/users/{user_id}"
+        - "/api/v1/orders"
+        - "/api/v1/orders/{order_id}"
+        - "/api/v1/products"
+        - "/api/v1/products/{product_id}"
+        - "/health"
+        - "/metrics"
+      
+      # 응답 시간 분포 (밀리초)
+      response_time_distribution:
+        fast: {min: 10, max: 100, weight: 0.7}    # 70% 빠른 응답
+        medium: {min: 100, max: 500, weight: 0.2} # 20% 보통 응답
+        slow: {min: 500, max: 2000, weight: 0.1}  # 10% 느린 응답
+      
+      include_request_id: true
+      include_user_id: true
+      include_correlation_id: true
+
+    # Django 애플리케이션 로그
+    django:
+      enabled: true
+      frequency: 0.10
+      log_levels: ["INFO", "WARNING", "ERROR", "CRITICAL"]
+      components: ["django.request", "django.db.backends", "django.security"]
+      
+      # SQL 쿼리 로그 포함
+      include_sql_queries: true
+      sql_query_patterns:
+        - "SELECT * FROM users WHERE id = %s"
+        - "INSERT INTO orders (user_id, product_id, quantity) VALUES (%s, %s, %s)"
+        - "UPDATE products SET stock = stock - %s WHERE id = %s"
+
+    # Docker 컨테이너 로그
+    docker:
+      enabled: true
+      frequency: 0.05
+      container_names:
+        - "web-app-{instance_id}"
+        - "database-{instance_id}"
+        - "redis-{instance_id}"
+        - "nginx-{instance_id}"
+      
+      log_drivers: ["json-file", "syslog", "journald"]
+      
+      # 컨테이너별 로그 패턴
+      container_patterns:
+        web-app:
+          - "Starting application server on port 8000"
+          - "Database connection established"
+          - "Processing request: {method} {path}"
+        database:
+          - "Database started and ready for connections"
+          - "Slow query detected: {query} ({duration}ms)"
+        redis:
+          - "Redis server started"
+          - "Client connected: {client_ip}:{client_port}"
+
+    # Kubernetes 로그
+    kubernetes:
+      enabled: true
+      frequency: 0.05
+      namespaces: ["default", "kube-system", "monitoring", "ingress-nginx"]
+      
+      pod_patterns:
+        - "web-{deployment}-{replica_id}"
+        - "api-{deployment}-{replica_id}"
+        - "worker-{deployment}-{replica_id}"
+        - "scheduler-{deployment}-{replica_id}"
+      
+      # Kubernetes 이벤트 패턴
+      event_patterns:
+        - "Pod {pod_name} scheduled to node {node_name}"
+        - "Container {container_name} started"
+        - "Liveness probe failed for container {container_name}"
+        - "Pod {pod_name} evicted due to resource pressure"
+
+  # 에러 패턴 라이브러리
+  error_patterns:
+    # 웹 서버 에러
+    web_server:
+      - pattern: "upstream connect error or disconnect/reset before headers"
+        frequency: 0.3
+        severity: "error"
+      - pattern: "client intended to send too large body"
+        frequency: 0.2
+        severity: "error"
+      
+    # 데이터베이스 에러
+    database:
+      - pattern: "Connection to database lost"
+        frequency: 0.4
+        severity: "critical"
+      - pattern: "Deadlock detected, transaction rolled back"
+        frequency: 0.3
+        severity: "error"
+    
+    # 애플리케이션 에러
+    application:
+      - pattern: "Unhandled exception in {module}: {exception_type}"
+        frequency: 0.5
+        severity: "error"
+      - pattern: "Memory usage exceeded threshold: {usage}MB"
+        frequency: 0.2
+        severity: "warning"
+
+  # 출력 설정
+  output:
+    # 다중 출력 지원
+    handlers:
+      - type: "file"
+        file_path: "./logs/all_logs.log"
+        format: "raw"
+        
+      - type: "file"
+        file_path: "./logs/structured_logs.json"
+        format: "json"
+        
+      - type: "network"
+        protocol: "tcp"
+        host: "localhost"
+        port: 5140
+        format: "syslog"
+        
+      - type: "console"
+        colored: true
+        format: "human_readable"
+
+  # 성능 최적화 설정
+  performance:
+    # 멀티스레딩
+    threads: 8
+    thread_pool_size: 16
+    
+    # 배치 처리
+    batch_size: 1000
+    buffer_size: 10000
+    
+    # 메모리 관리
+    memory_limit: "2GB"
+    gc_threshold: 1000
+    lazy_loading: true
+    
+    # I/O 최적화
+    async_io: true
+    io_buffer_size: 65536
+
+  # 모니터링 설정
+  monitoring:
+    # 통계 수집
+    enable_statistics: true
+    statistics_interval: 10  # 초
+    
+    # 메트릭 내보내기
+    metrics:
+      enabled: true
+      format: "prometheus"
+      endpoint: "/metrics"
+      port: 9090
+    
+    # 헬스체크
+    health_check:
+      enabled: true
+      endpoint: "/health"
+      port: 8080
+
+  # 로깅 설정
+  logging:
+    level: "DEBUG"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+    file: "./logs/generator_debug.log"
+    
+    # 로거별 레벨 설정
+    loggers:
+      "log_generator.core": "INFO"
+      "log_generator.generators": "DEBUG"
+      "log_generator.outputs": "WARNING"
