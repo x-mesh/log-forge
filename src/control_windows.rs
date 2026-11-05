@@ -204,7 +204,8 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
     let action = args[1].clone();
     if action == "monitor" {
         let cli = MonitorArgs::try_parse_from(
-            std::iter::once(format!("{} {action}", args[0])).chain(args.into_iter().skip(2)),
+            std::iter::once(crate::app::command_name(&args[0], &action))
+                .chain(args.into_iter().skip(2)),
         )?;
         if !cli.refresh.is_finite() || cli.refresh <= 0.0 {
             return Err("refresh must be a positive finite number".into());
@@ -225,8 +226,9 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
             ) {
                 Ok(response) => {
                     connected = true;
-                    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?)?;
-                    io::stdout().flush()?;
+                    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?)
+                        .map_err(crate::stdout_error)?;
+                    io::stdout().flush().map_err(crate::stdout_error)?;
                     if response["state"] == "stopping" {
                         break;
                     }
@@ -238,7 +240,8 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
                             io::ErrorKind::NotFound | io::ErrorKind::ConnectionRefused
                         ) =>
                 {
-                    writeln!(io::stdout(), "{}", json!({"state":"disconnected"}))?;
+                    writeln!(io::stdout(), "{}", json!({"state":"disconnected"}))
+                        .map_err(crate::stdout_error)?;
                     break;
                 }
                 Err(error) => return Err(error.into()),
@@ -248,10 +251,11 @@ pub(crate) fn command(args: Vec<String>) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     let cli = ControlArgs::try_parse_from(
-        std::iter::once(format!("{} {action}", args[0])).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], &action))
+            .chain(args.into_iter().skip(2)),
     )?;
     let response = request(&cli.control_socket, &action)?;
-    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?)?;
+    writeln!(io::stdout(), "{}", serde_json::to_string(&response)?).map_err(crate::stdout_error)?;
     Ok(())
 }
 

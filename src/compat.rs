@@ -3861,7 +3861,8 @@ fn original_command(program: &str) -> bool {
 fn config_command(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dyn Error>> {
     let use_original = original_command(&args[0]);
     let cli = ConfigCommand::try_parse_from(
-        std::iter::once(format!("{} config", args[0])).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], "config"))
+            .chain(args.into_iter().skip(2)),
     )?;
     if cli.standalone_config && (cli.file.is_none() || cli.action == "create") {
         return Err("--standalone-config requires an existing configuration file".into());
@@ -4861,7 +4862,10 @@ impl Output {
     ) -> Result<(), Box<dyn Error>> {
         match self {
             Self::File(file) => file.write(data)?,
-            Self::Console => io::stdout().lock().write_all(data)?,
+            Self::Console => io::stdout()
+                .lock()
+                .write_all(data)
+                .map_err(crate::stdout_error)?,
             Self::HumanConsole { human, colored } => {
                 let message = std::str::from_utf8(data)?.trim_end_matches('\n');
                 let prefix = if *human {
@@ -4889,7 +4893,8 @@ impl Output {
                     ""
                 };
                 let reset = if *colored { "\x1b[0m" } else { "" };
-                writeln!(io::stdout().lock(), "{prefix}{color}{message}{reset}")?;
+                writeln!(io::stdout().lock(), "{prefix}{color}{message}{reset}")
+                    .map_err(crate::stdout_error)?;
             }
             Self::Syslog(output) => {
                 let message = std::str::from_utf8(data)?
@@ -5007,7 +5012,9 @@ impl Output {
                 Ok(())
             }
             Self::Tcp(s) => s.flush(),
-            Self::Console | Self::HumanConsole { .. } => io::stdout().flush(),
+            Self::Console | Self::HumanConsole { .. } => {
+                io::stdout().flush().map_err(crate::stdout_error)
+            }
             Self::Syslog(output) => output.finish(),
             Self::Udp(_) => Ok(()),
             Self::Http(_) => Ok(()),
@@ -5283,7 +5290,7 @@ pub fn run(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dy
         clap::Command::new("log-forge list-types")
             .about("List log types")
             .try_get_matches_from(
-                std::iter::once(format!("{} list-types", args[0]))
+                std::iter::once(crate::app::command_name(&args[0], "list-types"))
                     .chain(args.iter().skip(2).cloned()),
             )?;
         for kind in LogType::value_variants() {
@@ -5299,7 +5306,7 @@ pub fn run(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(), Box<dy
         }
         return Ok(());
     }
-    let program = format!("{} start", args[0]);
+    let program = crate::app::command_name(&args[0], "start");
     let cli = Start::try_parse_from(std::iter::once(program).chain(args.into_iter().skip(2)))?;
     let continue_on_error = cli.continue_on_error || (use_original && !cli.fail_fast);
     if cli.standalone_config && cli.config.is_none() {

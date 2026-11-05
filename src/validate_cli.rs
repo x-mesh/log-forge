@@ -156,7 +156,8 @@ pub(crate) fn scan_records(
 
 pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
     let cli = Args::try_parse_from(
-        std::iter::once(format!("{} validate", args[0])).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], "validate"))
+            .chain(args.into_iter().skip(2)),
     )?;
     let paths = input_files(cli.input)?;
     let mut total = 0_u64;

@@ -83,7 +83,7 @@ pub(crate) fn run(args: Vec<String>, registry: &GeneratorRegistry) -> Result<(),
         .unwrap_or("log-forge")
         .to_owned();
     let cli = Args::try_parse_from(
-        std::iter::once(format!("{} init", args[0])).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], "init")).chain(args.into_iter().skip(2)),
     )?;
     if cli.file.exists() {
         return Err(format!(

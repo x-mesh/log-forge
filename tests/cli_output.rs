@@ -183,3 +183,50 @@ fn closed_stdout_ends_monitor_quietly() {
     assert!(output.status.success(), "{message}");
     assert!(message.is_empty(), "{message}");
 }
+
+#[cfg(unix)]
+#[test]
+fn monitor_reports_disconnected_when_the_generator_closes_without_a_response() {
+    use std::io::{BufRead, BufReader, Write};
+    use std::os::unix::net::UnixListener;
+
+    let socket = std::env::temp_dir().join(format!("lf-eof-{}.sock", std::process::id()));
+    let _ = std::fs::remove_file(&socket);
+    let listener = UnixListener::bind(&socket).unwrap();
+    let server = std::thread::spawn(move || {
+        let (stream, _) = listener.accept().unwrap();
+        let mut reader = BufReader::new(stream);
+        let mut request = String::new();
+        reader.read_line(&mut request).unwrap();
+        writeln!(
+            reader.get_mut(),
+            "{{\"state\":\"running\",\"generated\":1}}"
+        )
+        .unwrap();
+        let (stream, _) = listener.accept().unwrap();
+        drop(stream);
+    });
+    let output = log_forge(&[
+        "monitor",
+        "--refresh",
+        "0.05",
+        "--control-socket",
+        socket.to_str().unwrap(),
+    ]);
+    server.join().unwrap();
+    let _ = std::fs::remove_file(&socket);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(stdout.contains("\"state\":\"running\""), "{stdout}");
+    assert!(stdout.contains("\"state\":\"disconnected\""), "{stdout}");
+}
+
+#[test]
+fn broken_pipes_outside_stdout_stay_errors() {
+    let socket_error = std::io::Error::from(std::io::ErrorKind::BrokenPipe);
+    assert!(!log_forge::is_stdout_closed(&socket_error));
+}

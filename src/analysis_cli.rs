@@ -31,7 +31,8 @@ struct Args {
 
 pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
     let cli = Args::try_parse_from(
-        std::iter::once(format!("{} analyze", args[0])).chain(args.into_iter().skip(2)),
+        std::iter::once(crate::app::command_name(&args[0], "analyze"))
+            .chain(args.into_iter().skip(2)),
     )?;
     let mut analyzers = BTreeMap::new();
     for path in input_files(cli.input)? {
@@ -58,12 +59,11 @@ pub(crate) fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
         .into_iter()
         .map(|(kind, analyzer)| (kind, analyzer.statistics()))
         .collect();
-    let mut stdout = io::stdout().lock();
-    if cli.pretty {
-        serde_json::to_writer_pretty(&mut stdout, &stats)?;
+    let text = if cli.pretty {
+        serde_json::to_string_pretty(&stats)?
     } else {
-        serde_json::to_writer(&mut stdout, &stats)?;
-    }
-    writeln!(stdout)?;
+        serde_json::to_string(&stats)?
+    };
+    writeln!(io::stdout().lock(), "{text}").map_err(crate::stdout_error)?;
     Ok(())
 }

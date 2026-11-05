@@ -213,6 +213,43 @@ pub fn run_with_registry(
     app::run(args.into_iter().collect(), registry)
 }
 
+#[derive(Debug)]
+struct StdoutClosed;
+
+impl std::fmt::Display for StdoutClosed {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("Broken pipe (stdout closed)")
+    }
+}
+
+impl Error for StdoutClosed {}
+
+pub(crate) fn stdout_error(error: io::Error) -> io::Error {
+    if error.kind() == io::ErrorKind::BrokenPipe {
+        io::Error::new(io::ErrorKind::BrokenPipe, StdoutClosed)
+    } else {
+        error
+    }
+}
+
+/// Reports whether a reader such as `head` closed stdout before the command finished.
+/// Broken pipes on sockets and files stay ordinary errors.
+#[doc(hidden)]
+pub fn is_stdout_closed(error: &(dyn Error + 'static)) -> bool {
+    let mut current = Some(error);
+    while let Some(error) = current {
+        if error
+            .downcast_ref::<io::Error>()
+            .and_then(io::Error::get_ref)
+            .is_some_and(|inner| inner.is::<StdoutClosed>())
+        {
+            return true;
+        }
+        current = error.source();
+    }
+    false
+}
+
 pub fn write_records<W: Write>(
     generator: &mut dyn LogGenerator,
     output: &mut W,

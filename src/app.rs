@@ -455,6 +455,14 @@ const POSTGRES_TABLES: &[&str] = &[
 ];
 const POSTGRES_SLOW_TABLES: &[&str] = &["users", "orders", "products", "categories", "audit_log"];
 
+pub(crate) fn command_name(program: &str, command: &str) -> String {
+    let name = std::path::Path::new(program)
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .unwrap_or("log-forge");
+    format!("{name} {command}")
+}
+
 fn root_command(name: &'static str) -> Command {
     let command = Command::new(name)
         .version(env!("CARGO_PKG_VERSION"))
@@ -2609,7 +2617,8 @@ pub(crate) fn run(
     }
     if args.get(1).map(String::as_str) == Some("sample") {
         let sample = SampleArgs::try_parse_from(
-            std::iter::once(format!("{} sample", args[0])).chain(args.into_iter().skip(2)),
+            std::iter::once(crate::app::command_name(&args[0], "sample"))
+                .chain(args.into_iter().skip(2)),
         )?;
         if sample.count == 0 {
             return Err("sample count must be greater than zero".into());
